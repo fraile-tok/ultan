@@ -61,7 +61,7 @@ def now_local() -> datetime:
 def ensure_dir(path: Path) -> None:
     path.mkdir(parents=True, exist_ok=True)
 
-def get_repo_root(start: Optional[Path] = none) -> Path:
+def get_repo_root(start: Optional[Path] = None) -> Path:
     start = (start or Path.cwd()).resolve()
     for p in [start, *start.parents]:
         if (p / "worlds").exists():
@@ -76,7 +76,7 @@ def atomic_write_text(path: Path, text: str, encoding: str = "utf-8") -> None:
 # -----------
 # World Paths
 # -----------
-@dataclass(froze = True)
+@dataclass(frozen = True)
 class WorldPaths:
     root: Path
     world_id: str
