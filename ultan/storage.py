@@ -3,13 +3,14 @@
 # -----------
 
 # -----------
-# Libraries
+# Libraries & Imports
 # -----------
-import re
+from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path 
 from typing import Optional, List
+import re
 
 # -----------
 # Templates/Defaults
@@ -112,3 +113,59 @@ def create_world(world_id: str, repo_root: Optional[Path] = None) -> WorldPaths:
         atomic_write_text(wp.codex_path, codex)
 
     return wp
+
+# -----------
+# Codex Loading & Saving
+# -----------
+
+def load_codex(world_id: str, repo_root: Optional[Path] = None) -> str:
+    wp = create_world(world_id, repo_root = repo_root)
+    return wp.codex_path.read_text(encoding="utf-8")
+
+def save_codex(world_id: str, codex_md: str, repo_root: Optional[Path] = None) -> None:
+    wp = create_world(world_id, repo_root = repo_root)
+    atomic_write_text(wp.codex_path, codex_md)
+
+# -----------
+# Session Handling
+# -----------
+
+def _next_session_filename(sessions_dir: Path, date_prefix: str) -> str:
+    existing = sorted(sessions_dir.glob(f"{date_prefix}_*.md"))
+
+    max_n = 0
+    for p in existing:
+        m = re.match(rf"^{re.escape(date_prefix)}_(\d{{2}})\.md$", p.name)
+        if m:
+            max_n = max(max_n, int(m.group(1)))
+    return f"{date_prefix}_{max_n + 1:02d}.md"
+
+
+def create_session(world_id: str, repo_root: Optional[Path] = None) -> Path:
+    wp = create_world(world_id, repo_root = repo_root)
+
+    date_prefix = now_local().strftime("%Y-%m-%d")
+    filename = _next_session_filename(wp.sessions_dir, date_prefix)
+    session_path = wp.sessions_dir / filename
+
+    session_id = filename.replace(".md", "")
+    text = DEFAULT_SESSION_TEMPLATE.format(session_id = session_id, world_id = wp.world_id)
+    atomic_write_text(session_path, text)
+    return session_path
+
+def append_transcript(session_path: Path, speaker: str, text: str) -> None:
+    session_path = session_path.resolve()
+    if not session_path.exists():
+        raise FileNotFoundError(f"Session file not found: {session_path}")
+    
+    speaker = (speaker or "").strip()
+    if not speaker:
+        speaker = "Anonymous"
+
+    clean = (text or "").rstrip()
+
+    line = f"**{speaker}:** {clean}\n"
+    with session_path.open("a", encoding="utf-8") as f:
+        f.write(line)
+
+
