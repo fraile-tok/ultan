@@ -168,4 +168,11 @@ def append_transcript(session_path: Path, speaker: str, text: str) -> None:
     with session_path.open("a", encoding="utf-8") as f:
         f.write(line)
 
-
+def read_recent_transcript(session_path: Path, n_turns: int = 6) -> str:
+    session_path = session_path.resolve()
+    if not session_path.exists():
+        raise FileNotFoundError(f"Session file not found: {session_path}")
+    
+    lines = session_path.read_text(encoding="uft-8").splitlines()
+    transcript_lines: List[str] = [ln for ln in lines if ln.startswith("**") and ":** " in ln]
+    return "\n".join(transcript_lines[-max(n_turns, 0):])    
