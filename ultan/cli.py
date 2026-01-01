@@ -13,6 +13,7 @@ import typer
 
 from .storage import (
     create_world,
+    delete_world,
     create_session,
     load_codex,
     get_world_paths
@@ -34,13 +35,43 @@ def _print_paths(world_id: str) -> None:
     typer.echo(f"Sessions dir: {wp.sessions_dir}")
     
 # App Commands
-@app.command("world") # Creates and/or ensures world exists
+@app.command("world") # Creates and/or ensures world exists; with --delete calls the deletion function
 def world_cmd(
     world_id: str = typer.Argument(..., help = "World ID (folder-friendly, spaces will be normalized)."),
+    delete: bool = typer.Option(
+        False,
+        "--delete",
+        help = "Deletes a given world.",
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        "-y",
+        help = "Confirms delition without prompt."
+    )
 ) -> None:
     
+    if delete:
+        wp = get_world_paths(world_id)
+
+        if not wp.world_dir.exists():
+            typer.echo(f"World '{wp.world_id}' does not exist.")
+            raise typer.Exit(code=1)
+        
+        if not yes:
+            typer.confirm(
+            f"Delete world '{wp.world_id}'?\n"
+            f"This will permanently remove:\n"
+            f"  {wp.world_dir}",
+            abort=True,
+        )
+
+        delete_world(world_id)
+        typer.echo(f"World '{wp.world_id}' deleted.")
+        return
+
     wp = create_world(world_id)
-    typer.echo(f"World {world_id} is ready.")
+    typer.echo(f"World {wp.world_id} is ready.")
     typer.echo()
     _print_paths(wp.world_id)
 
