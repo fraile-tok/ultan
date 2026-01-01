@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path 
 from typing import Optional, List
+
+import shutil
 import re
 
 # -----------
@@ -100,7 +102,7 @@ def get_world_paths(world_id: str, repo_root: Optional[Path] = None) -> WorldPat
     )
 
 # -----------
-# World Creation
+# World Creation & Deletion
 # -----------
 
 def create_world(world_id: str, repo_root: Optional[Path] = None) -> WorldPaths:
@@ -113,6 +115,17 @@ def create_world(world_id: str, repo_root: Optional[Path] = None) -> WorldPaths:
         atomic_write_text(wp.codex_path, codex)
 
     return wp
+
+def delete_world(world_id: str, repo_root: Optional[Path] = None) -> None:
+    wp = get_world_paths(world_id, repo_root=repo_root)
+
+    if not wp.world_dir.exists():
+        raise FileNotFoundError(f"World '{wp.world_id}' does not exist.")
+    
+    if wp.world_dir.parent.name != "worlds":
+        raise RuntimeError(f"Refusing to delete unexpected path: {wp.world_dir}")
+    
+    shutil.rmtree(wp.world_dir)
 
 # -----------
 # Codex Loading & Saving
