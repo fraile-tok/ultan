@@ -8,6 +8,9 @@
 from __future__ import annotations
 from pathlib import Path 
 from typing import Optional
+import sys
+import platform
+import os
 
 import typer
 
@@ -159,3 +162,42 @@ def worldlist_cmd() -> None:
     typer.echo("Available worlds:")
     for w in worlds:
         typer.echo(f"  - {w}")
+
+@app.command("doctor") # Tests systems
+def doctor_cmd(
+    ping: bool = typer.Option(
+        False,
+        "--ping",
+        help="Make an API call to verify we are connected to the openAI API."
+    ),
+) -> None:
+    typer.echo("Ultan doctor")
+    typer.echo("-----------")
+    typer.echo(f"Python:   {sys.version.split()[0]}")
+    typer.echo(f"Platform: {platform.platform()}")
+    typer.echo(f"Env:      {sys.prefix}")
+    typer.echo()
+
+    key = os.getenv("OPENAI_API_KEY")
+    if not key:
+        typer.echo("OPENAI_API_KEY: MISSING")
+        typer.echo("Set it, e.g.: export OPENAI_API_KEY='...'\n(see OpenAI quickstart)")
+        raise typer.Exit(code=1)
+    typer.echo("OPENAI_API_KEY: present")
+
+    if ping:
+        from .llm import generate, load_config
+        
+        cfg = load_config()
+        typer.echo()
+        typer.echo(f"Pinging OpenAI (model={cfg.model})...")
+
+        try:
+            out = generate("Reply with exactly: OK")
+        except Exception as e:
+            typer.echo(f"Ping failed: {e}")
+            raise typer.Exit(code=1)
+        
+        typer.echo(f"Ping response: {out.strip()}")
+        if out.strip() != "OK":
+            typer.echo("Warning: unexpected ping output (key may still be fine)")
