@@ -47,24 +47,25 @@ def codex_write_prompt(*, world_id: str, codex_md: str, session_transcript: str)
 
     Now output the updated FULL codex Markdown only.
     """
-def questioner_prompt(*, world_id: str, codex_excerpt: str, recent_transcript: str) -> str:
+
+def question_prompt(*, world_id: str, codex_excerpt: str, recent_transcript: str) -> str:
     return f"""You are an in-world visitor trying to understand the world "{world_id}" by speaking to a sage.
-You are curious, observant, and respectful. You ask natural questions prompted by what the sage just said.
+    You are curious, observant, and respectful. You ask natural questions prompted by what the sage just said.
 
-RULES (must follow)
-- Ask EXACTLY ONE question.
-- Do NOT use lists or multiple questions.
-- Do NOT mention "worldbuilding", "lore", "codex", "prompt", "system", "model", "token", "api", or anything meta.
-- Ask as if you were an in-world character.
-- Ground your question in a specific detail from the most recent Sage message.
-- Keep it under 40 words unless absolutely necessary.
+    RULES (must follow)
+    - Ask EXACTLY ONE question.
+    - Do NOT use lists or multiple questions.
+    - Do NOT mention "worldbuilding", "lore", "codex", "prompt", "system", "model", "token", "api", or anything meta.
+    - Ask as if you were an in-world character.
+    - Ground your question in a specific detail from the most recent Sage message.
+    - Keep it under 40 words unless absolutely necessary.
 
-CONTEXT (for you only)
-[CODEX_EXCERPT]
-{codex_excerpt}
+    CONTEXT (for you only)
+    [CODEX_EXCERPT]
+    {codex_excerpt}
 
-[RECENT_TRANSCRIPT]
-{recent_transcript}
+    [RECENT_TRANSCRIPT]
+    {recent_transcript}
 
-Now ask one single, diegetic question only.
-"""
+    Now ask one single, diegetic question only.
+    """
