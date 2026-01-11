@@ -186,6 +186,6 @@ def read_recent_transcript(session_path: Path, n_turns: int = 6) -> str:
     if not session_path.exists():
         raise FileNotFoundError(f"Session file not found: {session_path}")
     
-    lines = session_path.read_text(encoding="uft-8").splitlines()
+    lines = session_path.read_text(encoding="utf-8").splitlines()
     transcript_lines: List[str] = [ln for ln in lines if ln.startswith("**") and ":** " in ln]
     return "\n".join(transcript_lines[-max(n_turns, 0):])    

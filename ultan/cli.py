@@ -18,9 +18,12 @@ from .storage import (
     create_world,
     delete_world,
     create_session,
+    append_transcript,
     load_codex,
     get_world_paths
 )
+
+from .engine import process_turn, finalize_codex_from_session
 
 # Declare App
 app = typer.Typer(
@@ -201,3 +204,35 @@ def doctor_cmd(
         typer.echo(f"Ping response: {out.strip()}")
         if out.strip() != "OK":
             typer.echo("Warning: unexpected ping output (key may still be fine)")
+
+@app.command("play") # Play Logic
+def play_cmd(
+    world_id: str = typer.Argument(..., help="World identifier."),
+    no_finalize: bool = typer.Option(False, "--no-finalize", help="Skip codex finalize prompt on exit."),
+) -> None:
+    session_path = create_session(world_id)
+    typer.echo(f"Session: {session_path}")
+    typer.echo("Type your answers as the Sage. Ctrl+C to quit.")
+    typer.echo()
+
+    opener = "You are received in quiet. What name do your people give this land, in your own tongue? What can I ask you about?"
+    append_transcript(session_path, "AI", opener)
+    typer.echo(f"AI: {opener}")
+
+    try:
+        while True:
+            user_text = input("\nSage: ").strip()
+            if not user_text:
+                continue
+            q = process_turn(world_id=world_id, session_path=session_path, user_text=user_text)
+            typer.echo(f"\nAI: {q}")
+    except KeyboardInterrupt:
+        typer.echo("\nSession ended.")
+
+    if no_finalize:
+        return
+    
+    do_it = typer.confirm("Finalize codex from this session log now?", default=True)
+    if do_it:
+        out_path = finalize_codex_from_session(world_id=world_id, session_path=session_path)
+        typer.echo(f"Finalize complete. Output: {out_path}")
