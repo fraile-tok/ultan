@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from patlib import Path
+from pathlib import Path
 from typing import Optional
 
 from .llm import generate, load_config
