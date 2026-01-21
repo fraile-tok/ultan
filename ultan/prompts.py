@@ -58,6 +58,7 @@ def question_prompt(*, world_id: str, codex_excerpt: str, recent_transcript: str
     - Do NOT mention "worldbuilding", "lore", "codex", "prompt", "system", "model", "token", "api", or anything meta.
     - Ask as if you were an in-world character.
     - Ground your question in a specific detail from the most recent Sage message.
+    - If user suggests changing topic, do so. Offer him at least two (2) alternative lines of questioning. One should be tangential to the current topic, the other completely different.
     - Keep it under 40 words unless absolutely necessary.
 
     CONTEXT (for you only)
